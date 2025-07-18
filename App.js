@@ -1,38 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './src/data/firebase/firebase';
-import { Provider as PaperProvider } from 'react-native-paper';
-
-import LoginScreen from './src/presentation/screens/LoginScreen';
-import RegisterScreen from './src/presentation/screens/RegisterScreen';
-import HomeScreen from './src/presentation/screens/HomeScreen';
-
-const Stack = createNativeStackNavigator();
+import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
+import React from 'react';
+import { ThemeProvider } from 'styled-components/native';
+import { Navigation } from './src/infrastructure/navigation';
+import { AuthenticationContextProvider } from './src/services/authentication/authentication.context';
+import { useFonts as useOswald, Oswald_400Regular } from '@expo-google-fonts/oswald';
+import { useFonts as useLato, Lato_400Regular } from '@expo-google-fonts/lato';
 
 export default function App() {
-  const [user, setUser] = useState(null);
+  const [oswaldLoaded] = useOswald({ Oswald_400Regular });
+  const [latoLoaded] = useLato({ Lato_400Regular });
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => setUser(u));
-    return () => unsubscribe();
-  }, []);
+  if (!oswaldLoaded || !latoLoaded) return null;
 
   return (
-    <PaperProvider>
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {user ? (
-            <Stack.Screen name="Home" component={HomeScreen} />
-          ) : (
-            <>
-              <Stack.Screen name="Register" component={RegisterScreen} />
-              <Stack.Screen name="Login" component={LoginScreen} />
-            </>
-          )}
-        </Stack.Navigator>
-      </NavigationContainer>
-    </PaperProvider>
+    <>
+        <AuthenticationContextProvider>
+          <Navigation />
+        </AuthenticationContextProvider>
+      <ExpoStatusBar style="auto" />
+    </>
   );
 }
