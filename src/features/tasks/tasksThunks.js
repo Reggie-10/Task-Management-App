@@ -1,3 +1,4 @@
+// src/features/tasks/tasksThunks.js
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import {
   collection,
@@ -10,11 +11,11 @@ import {
 } from 'firebase/firestore';
 import { db } from '../../data/firebase/firebase';
 
-const tasksRef = collection(db, 'tasks');
+// ✅ Fetch tasks from users/{uid}/tasks
+export const fetchTasks = createAsyncThunk('tasks/fetchTasks', async (uid) => {
+  const userTasksRef = collection(db, 'users', uid, 'tasks');
+  const snapshot = await getDocs(userTasksRef);
 
-// ✅ Fetch tasks from Firestore
-export const fetchTasks = createAsyncThunk('tasks/fetchTasks', async () => {
-  const snapshot = await getDocs(tasksRef);
   return snapshot.docs.map(docSnap => {
     const data = docSnap.data();
 
@@ -35,36 +36,37 @@ export const fetchTasks = createAsyncThunk('tasks/fetchTasks', async () => {
   });
 });
 
+// ✅ Add task to Firestore under users/{uid}/tasks
+export const addTask = createAsyncThunk('tasks/addTask', async ({ task, uid }) => {
+  const userTasksRef = collection(db, 'users', uid, 'tasks');
 
-// ✅ Add task to Firestore (🔥 FIXED: don't return serverTimestamp to Redux)
-export const addTask = createAsyncThunk('tasks/addTask', async (task) => {
   const taskForFirestore = {
     ...task,
     isCompleted: false,
-    createdAt: serverTimestamp(), // only for Firestore
+    createdAt: serverTimestamp(),
   };
 
-  const docRef = await addDoc(tasksRef, taskForFirestore);
+  const docRef = await addDoc(userTasksRef, taskForFirestore);
 
   return {
     id: docRef.id,
     ...task,
     isCompleted: false,
-    // ✅ Use client timestamp here for Redux
     createdAt: new Date().toISOString(),
   };
 });
 
-// ✅ Update existing task
-export const updateTask = createAsyncThunk('tasks/updateTask', async (task) => {
+// ✅ Update task in users/{uid}/tasks
+export const updateTask = createAsyncThunk('tasks/updateTask', async ({ uid, task }) => {
   const { id, ...taskData } = task;
-  const taskRef = doc(db, 'tasks', id);
+  const taskRef = doc(db, 'users', uid, 'tasks', id);
   await updateDoc(taskRef, taskData);
   return task;
 });
 
-// ✅ Delete task by ID
-export const deleteTask = createAsyncThunk('tasks/deleteTask', async (id) => {
-  await deleteDoc(doc(db, 'tasks', id));
+// ✅ Delete task in users/{uid}/tasks
+export const deleteTask = createAsyncThunk('tasks/deleteTask', async ({ uid, id }) => {
+  const taskRef = doc(db, 'users', uid, 'tasks', id);
+  await deleteDoc(taskRef);
   return id;
 });

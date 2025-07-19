@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   TextInput,
@@ -15,32 +15,31 @@ import {
   Text,
 } from 'react-native-paper';
 import { useDispatch } from 'react-redux';
-import { addTask } from '../../features/tasks/tasksThunks';
+import { updateTask } from '../../features/tasks/tasksThunks';
 import { getAuth } from 'firebase/auth';
 import { DatePickerModal } from 'react-native-paper-dates';
 import dayjs from 'dayjs';
 
-const AddTaskScreen = ({ navigation }) => {
+const EditTaskScreen = ({ route, navigation }) => {
   const dispatch = useDispatch();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState('Medium');
-  const [dueDate, setDueDate] = useState(new Date());
+  const { task } = route.params;
 
-  // Priority menu
+  const [title, setTitle] = useState(task.title);
+  const [description, setDescription] = useState(task.description);
+  const [priority, setPriority] = useState(task.priority || 'Medium');
+  const [dueDate, setDueDate] = useState(new Date(task.dueDate));
+
   const [menuVisible, setMenuVisible] = useState(false);
   const openMenu = () => setMenuVisible(true);
   const closeMenu = () => setMenuVisible(false);
 
-  // Date picker
   const [datePickerVisible, setDatePickerVisible] = useState(false);
-
   const onConfirmDate = ({ date }) => {
     setDatePickerVisible(false);
     setDueDate(date);
   };
 
-  const handleAddTask = () => {
+  const handleUpdateTask = () => {
     if (!title.trim()) return Alert.alert('Validation', 'Title is required');
 
     const auth = getAuth();
@@ -50,19 +49,20 @@ const AddTaskScreen = ({ navigation }) => {
       return Alert.alert('Error', 'User not logged in');
     }
 
-    const newTask = {
+    const updatedTask = {
+      id: task.id,
       title,
       description,
       priority,
       dueDate: dueDate.toISOString(),
     };
 
-    dispatch(addTask({ task: newTask, uid: currentUser.uid }))
+    dispatch(updateTask({ task: updatedTask, uid: currentUser.uid }))
       .unwrap()
       .then(() => navigation.goBack())
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
-        Alert.alert('Error', 'Failed to add task');
+        Alert.alert('Error', 'Failed to update task');
       });
   };
 
@@ -95,27 +95,9 @@ const AddTaskScreen = ({ navigation }) => {
                 </Button>
               }
             >
-              <Menu.Item
-                onPress={() => {
-                  setPriority('Low');
-                  closeMenu();
-                }}
-                title="Low"
-              />
-              <Menu.Item
-                onPress={() => {
-                  setPriority('Medium');
-                  closeMenu();
-                }}
-                title="Medium"
-              />
-              <Menu.Item
-                onPress={() => {
-                  setPriority('High');
-                  closeMenu();
-                }}
-                title="High"
-              />
+              <Menu.Item onPress={() => { setPriority('Low'); closeMenu(); }} title="Low" />
+              <Menu.Item onPress={() => { setPriority('Medium'); closeMenu(); }} title="Medium" />
+              <Menu.Item onPress={() => { setPriority('High'); closeMenu(); }} title="High" />
             </Menu>
           </View>
 
@@ -131,12 +113,11 @@ const AddTaskScreen = ({ navigation }) => {
             onDismiss={() => setDatePickerVisible(false)}
             date={dueDate}
             onConfirm={onConfirmDate}
-            validRange={{
-              startDate: dayjs().startOf('day').toDate(),
-            }}
+            validRange={{ startDate: dayjs().startOf('day').toDate() }}
           />
-          <Button mode="contained" onPress={handleAddTask}>
-            Add Task
+
+          <Button mode="contained" onPress={handleUpdateTask}>
+            Update Task
           </Button>
         </View>
       </SafeAreaView>
@@ -176,4 +157,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AddTaskScreen;
+export default EditTaskScreen;
