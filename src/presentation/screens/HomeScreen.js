@@ -1,50 +1,76 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Text, FAB, Appbar } from 'react-native-paper';
-import { signOut } from 'firebase/auth';
-import { auth } from '../../data/firebase/firebase';
+import React, { useEffect, useState } from 'react';
+import { View, FlatList, StyleSheet, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchTasks } from '../../features/tasks/tasksThunks';
+import TaskItem from '../components/TaskItem';
+import { Ionicons } from '@expo/vector-icons';
 
-export default function HomeScreen() {
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-    } catch (err) {
-      console.error(err.message);
-    }
-  };
+const TaskListScreen = ({ navigation }) => {
+  const dispatch = useDispatch();
+  const tasks = useSelector(state => state.tasks.tasks);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    dispatch(fetchTasks())
+      .unwrap()
+      .then(() => setLoading(false))
+      .catch(err => {
+        console.error('Failed to load tasks:', err);
+        setError('Something went wrong');
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#000" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centered}>
+        <Text>{error}</Text>
+      </View>
+    );
+  }
 
   return (
-    <>
-      <Appbar.Header>
-        <Appbar.Content title="Tasks" />
-        <Appbar.Action icon="logout" onPress={handleLogout} />
-      </Appbar.Header>
-
-      <View style={styles.container}>
-        <Text>Welcome! Your tasks will be listed here.</Text>
-      </View>
-
-      <FAB
-        icon="plus"
-        style={styles.fab}
-        onPress={() => {
-          // Later: navigate to AddTaskScreen
-          console.log("FAB Pressed");
-        }}
+    <View style={styles.container}>
+      <FlatList
+        data={tasks}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <TaskItem task={item} navigation={navigation} />
+        )}
       />
-    </>
+
+      {/* ✅ Floating Add Button */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => navigation.navigate('AddTask')}
+      >
+        <Ionicons name="add" size={28} color="white" />
+      </TouchableOpacity>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#fff'
-  },
+  container: { flex: 1, padding: 16 },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   fab: {
     position: 'absolute',
-    right: 16,
-    bottom: 16
-  }
+    right: 24,
+    bottom: 24,
+    backgroundColor: '#6200ee',
+    borderRadius: 30,
+    padding: 16,
+    elevation: 5,
+  },
 });
+
+export default TaskListScreen;
