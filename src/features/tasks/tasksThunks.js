@@ -1,4 +1,3 @@
-// src/features/tasks/tasksThunks.js
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import {
   collection,
@@ -11,7 +10,6 @@ import {
 } from 'firebase/firestore';
 import { db } from '../../data/firebase/firebase';
 
-// ✅ Fetch tasks from users/{uid}/tasks
 export const fetchTasks = createAsyncThunk('tasks/fetchTasks', async (uid) => {
   const userTasksRef = collection(db, 'users', uid, 'tasks');
   const snapshot = await getDocs(userTasksRef);
@@ -36,7 +34,6 @@ export const fetchTasks = createAsyncThunk('tasks/fetchTasks', async (uid) => {
   });
 });
 
-// ✅ Add task to Firestore under users/{uid}/tasks
 export const addTask = createAsyncThunk('tasks/addTask', async ({ task, uid }) => {
   const userTasksRef = collection(db, 'users', uid, 'tasks');
 
@@ -56,7 +53,6 @@ export const addTask = createAsyncThunk('tasks/addTask', async ({ task, uid }) =
   };
 });
 
-// ✅ Update task in users/{uid}/tasks
 export const updateTask = createAsyncThunk('tasks/updateTask', async ({ uid, task }) => {
   const { id, ...taskData } = task;
   const taskRef = doc(db, 'users', uid, 'tasks', id);
@@ -64,7 +60,6 @@ export const updateTask = createAsyncThunk('tasks/updateTask', async ({ uid, tas
   return task;
 });
 
-// ✅ Delete task in users/{uid}/tasks
 export const deleteTask = createAsyncThunk('tasks/deleteTask', async ({ uid, id }) => {
   const taskRef = doc(db, 'users', uid, 'tasks', id);
   await deleteDoc(taskRef);

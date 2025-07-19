@@ -58,13 +58,13 @@ const TaskItem = ({ task }) => {
   const getPriorityColor = (priority) => {
     switch (priority?.toLowerCase()) {
       case 'high':
-        return '#f44336'; // Red
+        return '#f44336';
       case 'medium':
-        return '#ff9800'; // Orange
+        return '#ff9800';
       case 'low':
-        return '#4caf50'; // Green
+        return '#4caf50';
       default:
-        return '#757575'; // Grey
+        return '#757575';
     }
   };
 

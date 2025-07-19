@@ -27,12 +27,10 @@ const AddTaskScreen = ({ navigation }) => {
   const [priority, setPriority] = useState('Medium');
   const [dueDate, setDueDate] = useState(new Date());
 
-  // Priority menu
   const [menuVisible, setMenuVisible] = useState(false);
   const openMenu = () => setMenuVisible(true);
   const closeMenu = () => setMenuVisible(false);
 
-  // Date picker
   const [datePickerVisible, setDatePickerVisible] = useState(false);
 
   const onConfirmDate = ({ date }) => {
@@ -84,7 +82,6 @@ const AddTaskScreen = ({ navigation }) => {
             multiline
           />
 
-          {/* Priority Dropdown */}
           <View style={styles.dropdownContainer}>
             <Menu
               visible={menuVisible}
@@ -119,7 +116,6 @@ const AddTaskScreen = ({ navigation }) => {
             </Menu>
           </View>
 
-          {/* Due Date Picker */}
           <Button mode="outlined" onPress={() => setDatePickerVisible(true)} style={{ marginBottom: 12 }}>
             Due Date: {dayjs(dueDate).format('DD MMM YYYY')}
           </Button>

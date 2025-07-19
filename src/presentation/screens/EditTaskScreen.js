@@ -84,7 +84,6 @@ const EditTaskScreen = ({ route, navigation }) => {
             multiline
           />
 
-          {/* Priority Dropdown */}
           <View style={styles.dropdownContainer}>
             <Menu
               visible={menuVisible}
@@ -101,7 +100,6 @@ const EditTaskScreen = ({ route, navigation }) => {
             </Menu>
           </View>
 
-          {/* Due Date Picker */}
           <Button mode="outlined" onPress={() => setDatePickerVisible(true)} style={{ marginBottom: 12 }}>
             Due Date: {dayjs(dueDate).format('DD MMM YYYY')}
           </Button>
