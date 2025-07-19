@@ -17,25 +17,42 @@ export const fetchTasks = createAsyncThunk('tasks/fetchTasks', async () => {
   const snapshot = await getDocs(tasksRef);
   return snapshot.docs.map(docSnap => {
     const data = docSnap.data();
+
+    const getDateString = (field) => {
+      if (!data[field]) return null;
+      const value = data[field];
+      if (typeof value === 'string') return value;
+      if (typeof value?.toDate === 'function') return value.toDate().toISOString();
+      return null;
+    };
+
     return {
       id: docSnap.id,
       ...data,
-      // Convert Firestore Timestamp to ISO string for serializability
-      dueDate: data.dueDate?.toDate().toISOString() || null,
-      createdAt: data.createdAt?.toDate().toISOString() || null,
+      dueDate: getDateString('dueDate'),
+      createdAt: getDateString('createdAt'),
     };
   });
 });
 
-// ✅ Add task to Firestore
+
+// ✅ Add task to Firestore (🔥 FIXED: don't return serverTimestamp to Redux)
 export const addTask = createAsyncThunk('tasks/addTask', async (task) => {
-  const newTask = {
+  const taskForFirestore = {
     ...task,
     isCompleted: false,
-    createdAt: serverTimestamp(),
+    createdAt: serverTimestamp(), // only for Firestore
   };
-  const docRef = await addDoc(tasksRef, newTask);
-  return { id: docRef.id, ...newTask };
+
+  const docRef = await addDoc(tasksRef, taskForFirestore);
+
+  return {
+    id: docRef.id,
+    ...task,
+    isCompleted: false,
+    // ✅ Use client timestamp here for Redux
+    createdAt: new Date().toISOString(),
+  };
 });
 
 // ✅ Update existing task
